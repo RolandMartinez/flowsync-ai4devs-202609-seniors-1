@@ -94,3 +94,22 @@ con 422 y mensajes específicos. Bonus no buscado: la contraseña corta devuelve
 a la vez (password y passwordConfirmation), confirmando que el array de errores soporta
 más de uno simultáneo. 19 requisitos escritos, 23 escenarios, 16 comprobados — verificado
 con `grep`, no de memoria.
+
+## Prompt 5
+
+**Modelo:** Sonnet 5
+**Herramienta:** Claude Code
+**Hora:** 2026-10-01 (después de ver la revisión del PR #81 de un compañero)
+
+```
+Sí, aplícalo
+```
+(aprobando añadir los códigos HTTP reales a los THEN, tras ver que el revisor del PR de un
+compañero marcó como error quitarlos: "el código de estado es parte de la respuesta: es
+contrato")
+
+**Qué salió:** añadí los códigos (200/400/401/422) a los `THEN` de los requisitos de
+backend donde ya tenía evidencia real de `curl` de esta misma sesión — no inventé ninguno
+nuevo, solo trasladé al archivo lo que ya había verificado. No toqué los requisitos de
+frontend (redirecciones de pantalla), que no tienen código HTTP propio. Conteos sin cambio:
+19 requisitos, 23 escenarios.

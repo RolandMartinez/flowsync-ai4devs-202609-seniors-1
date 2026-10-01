@@ -12,35 +12,35 @@ contraseña; el nombre completo es opcional.
 #### Scenario: Alta con nombre completo
 - **WHEN** se envía un alta con un email no registrado, contraseña y confirmación
   coincidentes, y un nombre completo
-- **THEN** la cuenta se crea con ese nombre, y la respuesta incluye los datos del usuario y
-  un token de acceso
+- **THEN** la respuesta es 200, la cuenta se crea con ese nombre, y el cuerpo incluye los
+  datos del usuario y un token de acceso
 
 #### Scenario: Alta con nombre completo omitido
 - **WHEN** se envía un alta con un email no registrado, contraseña y confirmación
   coincidentes, y sin nombre completo
-- **THEN** la cuenta se crea, el nombre queda vacío, y la respuesta incluye los datos del
-  usuario y un token de acceso
+- **THEN** la respuesta es 200, la cuenta se crea con el nombre vacío, y el cuerpo incluye
+  los datos del usuario y un token de acceso
 
 ### Requirement: Rechazar un email ya registrado
 El sistema SHALL rechazar un alta cuyo email ya pertenezca a una cuenta existente.
 
 #### Scenario: Email duplicado
 - **WHEN** se envía un alta con un email que ya tiene cuenta
-- **THEN** la petición se rechaza y la respuesta señala el campo del email como la causa
+- **THEN** la respuesta es 422 y señala el campo del email como la causa
 
 ### Requirement: Exigir confirmación de contraseña
 El sistema SHALL rechazar un alta cuando la contraseña y su confirmación no coinciden.
 
 #### Scenario: Confirmación distinta
 - **WHEN** la confirmación de contraseña no coincide con la contraseña
-- **THEN** la petición se rechaza y la respuesta señala el campo de confirmación como la causa
+- **THEN** la respuesta es 422 y señala el campo de confirmación como la causa
 
 ### Requirement: Rechazar un email con formato inválido
 El sistema SHALL rechazar un alta cuando el email no tiene forma de email.
 
 #### Scenario: Email mal formado
 - **WHEN** se envía un alta con un texto que no tiene forma de email
-- **THEN** la petición se rechaza y la respuesta señala el campo del email como la causa
+- **THEN** la respuesta es 422 y señala el campo del email como la causa
 
 ### Requirement: Exigir una longitud mínima de contraseña
 El sistema SHALL rechazar un alta cuando la contraseña tiene menos de 8 caracteres.
@@ -48,7 +48,7 @@ El sistema SHALL rechazar un alta cuando la contraseña tiene menos de 8 caracte
 #### Scenario: Contraseña demasiado corta
 - **WHEN** se envía un alta con una contraseña de menos de 8 caracteres (y su confirmación
   igual de corta)
-- **THEN** la petición se rechaza señalando tanto el campo de la contraseña como el de su
+- **THEN** la respuesta es 422 y señala tanto el campo de la contraseña como el de su
   confirmación
 
 ### Requirement: Iniciar sesión con credenciales correctas
@@ -57,20 +57,20 @@ coinciden con una cuenta existente, y emitirle un token de acceso nuevo.
 
 #### Scenario: Credenciales correctas
 - **WHEN** se envía un email y contraseña que coinciden con una cuenta existente
-- **THEN** la respuesta incluye los datos del usuario y un token de acceso nuevo
+- **THEN** la respuesta es 200 e incluye los datos del usuario y un token de acceso nuevo
 
 ### Requirement: Rechazar credenciales incorrectas sin distinguir la causa
-El sistema SHALL rechazar un intento de inicio de sesión con el mismo mensaje genérico,
-tanto si el email no existe como si la contraseña es incorrecta.
+El sistema SHALL rechazar un intento de inicio de sesión con el mismo código y el mismo
+mensaje genérico, tanto si el email no existe como si la contraseña es incorrecta.
 
 #### Scenario: Contraseña incorrecta
 - **WHEN** se envía un email de una cuenta existente con una contraseña que no coincide
-- **THEN** la petición se rechaza con un mensaje de credenciales inválidas, sin más detalle
+- **THEN** la respuesta es 400, con un mensaje de credenciales inválidas y sin más detalle
 
 #### Scenario: Email inexistente
 - **WHEN** se envía un email que no pertenece a ninguna cuenta
-- **THEN** la petición se rechaza con el mismo mensaje de credenciales inválidas que una
-  contraseña incorrecta
+- **THEN** la respuesta es 400, con el mismo código y el mismo mensaje de credenciales
+  inválidas que una contraseña incorrecta
 
 ### Requirement: Exigir sesión para ver el perfil
 El sistema SHALL exigir un token de acceso válido para devolver los datos de perfil de una
@@ -78,11 +78,11 @@ persona.
 
 #### Scenario: Sin token
 - **WHEN** se piden los datos de perfil sin un token de acceso
-- **THEN** la petición se rechaza por falta de autorización
+- **THEN** la respuesta es 401
 
 #### Scenario: Con token válido
 - **WHEN** se piden los datos de perfil con un token de acceso vigente
-- **THEN** la respuesta incluye los datos de esa cuenta
+- **THEN** la respuesta es 200 e incluye los datos de esa cuenta
 
 ### Requirement: Mostrar iniciales derivadas de un nombre de dos o más palabras
 El sistema SHALL calcular unas iniciales de dos letras a partir del nombre completo de la
@@ -114,9 +114,9 @@ El sistema SHALL invalidar el token de acceso usado al cerrar sesión, de forma 
 servir para peticiones posteriores.
 
 #### Scenario: Reutilizar el token tras cerrar sesión
-- **WHEN** se cierra sesión con un token y después se vuelve a usar ese mismo token para
-  pedir el perfil
-- **THEN** la petición se rechaza por falta de autorización
+- **WHEN** se cierra sesión con un token (la respuesta de cerrar sesión es 200) y después se
+  vuelve a usar ese mismo token para pedir el perfil
+- **THEN** la respuesta al pedir el perfil es 401
 
 ### Requirement: Cerrar sesión no afecta a otras sesiones activas
 El sistema SHALL invalidar únicamente el token con el que se cierra sesión, dejando
@@ -125,8 +125,8 @@ intactos los demás tokens activos de la misma cuenta.
 #### Scenario: Dos sesiones activas, se cierra una
 - **WHEN** una cuenta tiene dos tokens de acceso activos (por ejemplo, dos inicios de
   sesión) y se cierra sesión con uno de ellos
-- **THEN** ese token deja de servir, pero el otro sigue dando acceso al perfil con
-  normalidad
+- **THEN** pedir el perfil con ese token responde 401, pero con el otro token sigue
+  respondiendo 200 con normalidad
 
 ### Requirement: Responder siempre en JSON
 El sistema SHALL responder en formato JSON a toda petición de esta vertical, incluso si
@@ -162,8 +162,7 @@ El sistema SHALL borrar la sesión guardada y mostrar un aviso explicando el mot
 el token guardado es rechazado por no ser válido.
 
 #### Scenario: Token guardado inválido al arrancar
-- **WHEN** se abre la aplicación con un token guardado que el sistema rechaza por no ser
-  válido
+- **WHEN** se abre la aplicación con un token guardado y pedir el perfil con él responde 401
 - **THEN** la sesión guardada se borra, se muestra la pantalla de inicio de sesión, y en
   ella aparece un aviso explicando que la sesión caducó
 
