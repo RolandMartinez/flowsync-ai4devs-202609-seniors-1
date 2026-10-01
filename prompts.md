@@ -113,3 +113,32 @@ backend donde ya tenía evidencia real de `curl` de esta misma sesión — no in
 nuevo, solo trasladé al archivo lo que ya había verificado. No toqué los requisitos de
 frontend (redirecciones de pantalla), que no tienen código HTTP propio. Conteos sin cambio:
 19 requisitos, 23 escenarios.
+
+## Prompt 6
+
+**Modelo:** Sonnet 5
+**Herramienta:** Claude Code
+**Hora:** 2026-10-01 (después de ver la revisión del PR #79 por el Agente Revisor Lidr)
+
+```
+Sí, arréglalo todo
+```
+(aprobando corregir un requisito que el revisor marcó como FALSO — "iniciales: primera y
+última palabra" cuando el código real toma primera y segunda — más ampliar cobertura de
+frontend que el revisor marcó como ausente)
+
+**Qué salió:** encontré y corregí un fallo real en mi propio trabajo: había "comprobado" la
+regla de iniciales con "Ana Garcia" (2 palabras), donde "segunda" y "última" coinciden y no
+se puede distinguir una lectura de la otra — hacía falta un nombre de 3 palabras para
+discriminar. `"Ada Byron Lovelace"` dio "AB", confirmando que mi regla escrita era falsa.
+También verifiqué en vivo: la clave `fullName` ausente (no solo `null`) da 422; el email es
+sensible a mayúsculas en la comprobación de duplicados (`Spec.Verify@Example.com` se
+registró como cuenta nueva); el login exige email y contraseña con mensajes por campo; la
+contraseña tiene también un máximo de 32; una ruta desconocida redirige distinto según haya
+sesión o no; y — el hallazgo más caro — mi propia Parte B anterior decía que un fallo no-401
+al validar un token guardado era "indistinguible desde fuera" de un rechazo real. Era falso:
+paré el backend, confirmé que el token seguía en `localStorage`, y al levantarlo de nuevo y
+recargar, la sesión se recuperó sola — sí es observable, así que lo reescribí como spec en
+vez de dejarlo como duda. 25 requisitos escritos, 33 escenarios, 22 comprobados — verificado
+con `grep`, no de memoria. En el camino casi dejo otro error (marqué como "no comprobado"
+algo que sí había comprobado) y lo corregí antes de cerrar.

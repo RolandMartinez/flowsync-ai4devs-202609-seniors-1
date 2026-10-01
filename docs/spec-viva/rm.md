@@ -15,18 +15,42 @@ contraseña; el nombre completo es opcional.
 - **THEN** la respuesta es 200, la cuenta se crea con ese nombre, y el cuerpo incluye los
   datos del usuario y un token de acceso
 
-#### Scenario: Alta con nombre completo omitido
+#### Scenario: Alta con el nombre enviado como nulo
 - **WHEN** se envía un alta con un email no registrado, contraseña y confirmación
-  coincidentes, y sin nombre completo
+  coincidentes, y el campo del nombre completo enviado explícitamente vacío (nulo)
 - **THEN** la respuesta es 200, la cuenta se crea con el nombre vacío, y el cuerpo incluye
   los datos del usuario y un token de acceso
 
+### Requirement: Exigir que la clave del nombre esté presente, aunque sea vacía
+El sistema SHALL rechazar un alta en la que la clave del nombre completo no se envía en
+absoluto, aunque el nombre en sí no sea obligatorio.
+
+#### Scenario: Clave del nombre ausente
+- **WHEN** se envía un alta sin incluir la clave del nombre completo en la petición
+- **THEN** la respuesta es 422 y señala el campo del nombre como requerido
+
 ### Requirement: Rechazar un email ya registrado
-El sistema SHALL rechazar un alta cuyo email ya pertenezca a una cuenta existente.
+El sistema SHALL rechazar un alta cuyo email ya pertenezca a una cuenta existente, y
+mostrar en pantalla un mensaje que invite a iniciar sesión en su lugar.
 
 #### Scenario: Email duplicado
 - **WHEN** se envía un alta con un email que ya tiene cuenta
 - **THEN** la respuesta es 422 y señala el campo del email como la causa
+
+#### Scenario: Aviso en la pantalla de registro
+- **WHEN** se intenta crear una cuenta desde la pantalla de registro con un email que ya
+  tiene cuenta
+- **THEN** bajo el campo de email aparece el aviso "Ese email ya está registrado. Inicia
+  sesión en su lugar."
+
+### Requirement: Tratar como cuentas distintas los emails que solo difieren en mayúsculas
+El sistema SHALL permitir dar de alta un email que ya existe con otra combinación de
+mayúsculas y minúsculas, sin tratarlo como duplicado.
+
+#### Scenario: Mismo email con mayúsculas distintas
+- **WHEN** ya existe una cuenta con un email en minúsculas y se envía un alta con el mismo
+  email pero con alguna letra en mayúscula
+- **THEN** la respuesta es 200 y se crea una segunda cuenta
 
 ### Requirement: Exigir confirmación de contraseña
 El sistema SHALL rechazar un alta cuando la contraseña y su confirmación no coinciden.
@@ -42,12 +66,19 @@ El sistema SHALL rechazar un alta cuando el email no tiene forma de email.
 - **WHEN** se envía un alta con un texto que no tiene forma de email
 - **THEN** la respuesta es 422 y señala el campo del email como la causa
 
-### Requirement: Exigir una longitud mínima de contraseña
-El sistema SHALL rechazar un alta cuando la contraseña tiene menos de 8 caracteres.
+### Requirement: Exigir una longitud de contraseña entre 8 y 32 caracteres
+El sistema SHALL rechazar un alta cuando la contraseña tiene menos de 8 o más de 32
+caracteres.
 
 #### Scenario: Contraseña demasiado corta
 - **WHEN** se envía un alta con una contraseña de menos de 8 caracteres (y su confirmación
   igual de corta)
+- **THEN** la respuesta es 422 y señala tanto el campo de la contraseña como el de su
+  confirmación
+
+#### Scenario: Contraseña demasiado larga
+- **WHEN** se envía un alta con una contraseña de más de 32 caracteres (y su confirmación
+  igual de larga)
 - **THEN** la respuesta es 422 y señala tanto el campo de la contraseña como el de su
   confirmación
 
@@ -58,6 +89,15 @@ coinciden con una cuenta existente, y emitirle un token de acceso nuevo.
 #### Scenario: Credenciales correctas
 - **WHEN** se envía un email y contraseña que coinciden con una cuenta existente
 - **THEN** la respuesta es 200 e incluye los datos del usuario y un token de acceso nuevo
+
+### Requirement: Exigir email y contraseña para iniciar sesión
+El sistema SHALL rechazar un intento de inicio de sesión al que le falte el email o la
+contraseña, señalando cada campo que falte.
+
+#### Scenario: Campos vacíos en la pantalla de login
+- **WHEN** se intenta iniciar sesión desde la pantalla de login sin escribir nada
+- **THEN** bajo el campo de email aparece "Falta rellenar el email." y bajo el de
+  contraseña aparece "Falta rellenar la contraseña."
 
 ### Requirement: Rechazar credenciales incorrectas sin distinguir la causa
 El sistema SHALL rechazar un intento de inicio de sesión con el mismo código y el mismo
@@ -84,14 +124,22 @@ persona.
 - **WHEN** se piden los datos de perfil con un token de acceso vigente
 - **THEN** la respuesta es 200 e incluye los datos de esa cuenta
 
-### Requirement: Mostrar iniciales derivadas de un nombre de dos o más palabras
-El sistema SHALL calcular unas iniciales de dos letras a partir del nombre completo de la
-cuenta, cuando ese nombre tiene dos o más palabras.
+### Requirement: Mostrar "Sin nombre" en el perfil cuando la cuenta no tiene nombre
+El sistema SHALL mostrar el texto "Sin nombre" en la pantalla de perfil cuando la cuenta no
+tiene nombre completo.
 
-#### Scenario: Nombre con dos o más palabras
-- **WHEN** la cuenta tiene un nombre completo con al menos dos palabras
-- **THEN** las iniciales son la primera letra de la primera palabra y la primera letra de la
-  última, en mayúsculas
+#### Scenario: Perfil de una cuenta sin nombre
+- **WHEN** se visita la pantalla de perfil de una cuenta sin nombre completo
+- **THEN** donde iría el nombre se lee "Sin nombre"
+
+### Requirement: Mostrar iniciales derivadas de las dos primeras palabras de un nombre
+El sistema SHALL calcular unas iniciales de dos letras a partir de las dos primeras
+palabras del nombre completo de la cuenta, cuando ese nombre tiene dos o más palabras.
+
+#### Scenario: Nombre de tres o más palabras
+- **WHEN** la cuenta tiene un nombre completo de tres o más palabras
+- **THEN** las iniciales son la primera letra de la primera palabra y la primera letra de
+  la segunda, en mayúsculas — no de la última
 
 ### Requirement: Mostrar iniciales cuando el nombre es una sola palabra
 El sistema SHALL calcular igualmente unas iniciales de dos letras cuando el nombre completo
@@ -157,14 +205,46 @@ intenta ver las pantallas de inicio de sesión o registro.
 - **WHEN** una persona con sesión activa visita la pantalla de registro
 - **THEN** se la redirige a la pantalla de perfil
 
-### Requirement: Cerrar la sesión local si el token guardado ya no es válido
-El sistema SHALL borrar la sesión guardada y mostrar un aviso explicando el motivo, cuando
-el token guardado es rechazado por no ser válido.
+### Requirement: Redirigir una ruta desconocida según el estado de sesión
+El sistema SHALL tratar cualquier dirección que no sea una de las pantallas conocidas como
+si fuera la pantalla de perfil, dejando que el resto de reglas de sesión decidan qué se ve
+realmente.
+
+#### Scenario: Ruta desconocida sin sesión
+- **WHEN** una persona sin sesión activa visita una dirección que no corresponde a ninguna
+  pantalla conocida
+- **THEN** termina en la pantalla de inicio de sesión
+
+#### Scenario: Ruta desconocida con sesión activa
+- **WHEN** una persona con sesión activa visita una dirección que no corresponde a ninguna
+  pantalla conocida
+- **THEN** termina en la pantalla de perfil
+
+### Requirement: Cerrar la sesión local si el token guardado es rechazado
+El sistema SHALL borrar la sesión guardada y mostrar un aviso de caducidad, cuando el
+servidor rechaza explícitamente el token guardado.
 
 #### Scenario: Token guardado inválido al arrancar
 - **WHEN** se abre la aplicación con un token guardado y pedir el perfil con él responde 401
 - **THEN** la sesión guardada se borra, se muestra la pantalla de inicio de sesión, y en
-  ella aparece un aviso explicando que la sesión caducó
+  ella aparece el aviso "Tu sesión ha caducado. Vuelve a iniciar sesión."
+
+### Requirement: Conservar el token guardado ante un fallo que no es un rechazo
+El sistema SHALL conservar el token guardado en el dispositivo, sin borrarlo, cuando la
+validación de un token guardado falla por un motivo distinto a un rechazo explícito del
+servidor (por ejemplo, el servidor no responde).
+
+#### Scenario: El servidor no responde al validar un token guardado
+- **WHEN** se abre la aplicación con un token guardado y el servidor no responde a la
+  petición que lo valida
+- **THEN** se muestra la pantalla de inicio de sesión con el aviso "No se pudo conectar con
+  el servidor. Comprueba que el backend está arrancado.", y el token guardado no se borra
+
+#### Scenario: El servidor vuelve a responder y se recarga
+- **WHEN**, después de lo anterior, el servidor vuelve a estar disponible y se recarga la
+  aplicación
+- **THEN** la sesión se recupera automáticamente con el mismo token, sin pedir credenciales
+  de nuevo
 
 ### Requirement: Mostrar una pantalla de carga mientras se resuelve un token guardado
 El sistema SHALL mostrar una pantalla de carga, y no la de inicio de sesión ni una pantalla
@@ -191,15 +271,17 @@ de sesión al servidor falle.
 
 ### 1. Los dos números
 
-Requisitos escritos: **19**
+Requisitos escritos: **25**
 Requisitos comprobados (abriendo el código y probando contra el sistema corriendo, no solo
-leyendo): **16**
+leyendo): **22**
 
 Los 3 escritos y no comprobados en marcha:
 - Visitar la pantalla de registro con sesión activa (comparte el mismo guardia de código
   que la de login, que sí comprobé, pero no la visité yo mismo).
 - La pantalla de carga mientras se resuelve un token guardado.
-- Cerrar sesión localmente cuando el servidor no responde.
+- Cerrar sesión localmente cuando el servidor no responde (en el flujo de cerrar sesión, no
+  en el de validar un token al arrancar — ese sí lo comprobé parando y levantando el
+  backend).
 
 ### 2. Las incoherencias que aparecieron al escribirla
 
@@ -209,35 +291,41 @@ Los 3 escritos y no comprobados en marcha:
 - Hay un middleware que en cada petición comprueba en silencio si quien la hace tiene una
   sesión válida, pero ninguna ruta de esta vertical usa ese resultado para nada — se ve en
   que no hay una sola referencia a esa comprobación fuera de donde se declara.
-- El código que reacciona cuando falla la validación de un token guardado trae un
-  comentario que dice que el token "se conserva" porque "puede seguir siendo bueno"; sin
-  embargo, lo que pasa a continuación es indistinguible desde fuera de cuando el token sí
-  se descarta: en ambos casos la persona ve la pantalla de inicio de sesión.
 - El requisito de responder siempre en JSON lo cumple un middleware que corre en **toda**
   ruta del sistema, no solo en esta vertical — se incluye porque los middlewares entraban en
   el alcance acordado, pero no es un comportamiento exclusivo de cuentas y acceso, y merece
   decirlo en vez de callarlo.
+- La verificación de email duplicado distingue mayúsculas de minúsculas, pero nada en el
+  producto comunica esa regla — dos personas podrían terminar con cuentas distintas por una
+  mayúscula sin querer, y no hay forma de que lo sepan de antemano.
 
 ### 3. Lo que no pude decidir si era un bug o el contrato
 
-Cuando la validación de un token guardado falla por algo que no es un rechazo explícito del
-servidor (por ejemplo, el servidor no responde), el código dice en un comentario que
-conserva el token porque "puede seguir siendo bueno" — pero dos líneas más abajo pone a la
-persona en la pantalla de inicio de sesión igual que si el token hubiera sido rechazado de
-verdad. Una lectura: el comentario describe la intención original y lo que hace falta es
-que la pantalla no empuje a la persona al login en este caso. La otra lectura: lo que
-importa es lo que ve la persona, el comentario quedó desactualizado, y el comportamiento
-actual (tratarlo igual que un rechazo) es el contrato real. No hay forma de decidir cuál de
-las dos es cierta leyendo el código — hace falta preguntar a quien lo escribió.
+Una primera versión de esta spec decía que, ante un fallo no explícito al validar un token
+guardado, lo que ve la persona era "indistinguible" de un rechazo real. Comprobarlo de
+verdad (parar el backend, mirar qué queda en `localStorage`, y volver a arrancarlo) demostró
+que eso era falso: el mensaje en pantalla es distinto ("no se pudo conectar" frente a
+"sesión caducada") y la sesión se recupera sola al recargar en un caso y no en el otro — sí
+es observable, así que ya está escrito arriba como spec y no como duda.
 
-Un segundo caso, más pequeño: cuando no hay nombre completo, las iniciales de una cuenta
-salen de tomar la primera letra de la parte del email antes de la arroba y la primera letra
-de después de la arroba (por ejemplo, `ana@trabajo.com` da "AT"). Esto usa exactamente el
-mismo patrón de código que separa un nombre completo en dos palabras, aplicado a un email en
-vez de a un nombre — lo que sugiere que es una reutilización accidental del mismo gesto, no
-una decisión pensada para este caso. Verificar que existe además una tercera regla (nombre
-de una sola palabra → sus dos primeras letras) refuerza esta lectura: son tres reglas
-distintas que parecen una única función genérica reutilizada, no tres decisiones de
-producto independientes. No encontré ninguna señal en el código que confirme si alguien
-decidió estos resultados a propósito o si simplemente salieron así de reusar la misma
-lógica.
+Lo que sigue sin decidirse es más fino: durante ese fallo, la persona ve el formulario de
+login completo, como si tuviera que volver a escribir sus credenciales — cuando en realidad
+su token seguía siendo válido y bastaba con esperar o recargar. Una lectura: es una
+simplificación deliberada, total, no hacía falta construir una tercera pantalla para un
+corte de red pasajero. La otra lectura: es un descuido, y alguien que vea ese formulario va
+a escribir su contraseña otra vez, abriendo una sesión nueva innecesaria en vez de esperar a
+la que ya tenía. No hay señal en el código de que se haya pensado esta diferencia a
+propósito.
+
+Un segundo caso: cuando no hay nombre completo, las iniciales de una cuenta salen de tomar
+la primera letra de la parte del email antes de la arroba y la primera letra de después de
+la arroba (por ejemplo, `ana@trabajo.com` da "AT"). Esto usa el mismo patrón de código que
+separa un nombre completo en sus dos primeras palabras, aplicado a un email en vez de a un
+nombre — lo que sugiere que es una reutilización accidental del mismo gesto, no una
+decisión pensada para este caso. Que existan además dos reglas más (nombre de una palabra →
+sus dos primeras letras; nombre de dos o más palabras → la primera y la *segunda*, no la
+última, como se pensaba en la primera versión de esta spec) refuerza esta lectura: son tres
+reglas distintas que parecen una única función genérica reutilizada tres veces, no tres
+decisiones de producto independientes. No encontré ninguna señal en el código que confirme
+si alguien decidió estos resultados a propósito o si simplemente salieron así de reusar la
+misma lógica.
