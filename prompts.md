@@ -130,3 +130,15 @@ Cuando termines, muéstrame el hash y el mensaje del commit.
 ```
 
 **Qué salió:** el agente no lanzó la skill `/commit` (el prompt pedía su formato, no ejecutarla) y siguió su procedimiento a mano: revisó el diff en stage, redactó un mensaje `tipo(scope): descripción` y commiteó solo `docs/auditoria/` y `prompts.md` en la rama actual, sin abrir el PR. Dejó las tres líneas de la Parte B tal cual.
+
+## Prompt 6
+
+**Modelo:** Sonnet 5.5
+**Herramienta:** Claude Code
+**Hora:** 2026-10-12 22:25:41
+
+```
+push y abre el PR
+```
+
+**Qué salió:** el agente registró este prompt en un segundo commit (sin modificar el primero), subió la rama `auditoria-rm` a tu fork y abrió el PR contra el repo del curso con base `s5/start`.
