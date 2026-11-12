@@ -93,11 +93,37 @@ No realices commits todavía.
 Explícame qué archivos modificaste y por qué.
 ```
 
-**Qué salió:** lanzado en una sesión anterior, antes del prompt de prueba. Los prefijos de clave van escritos como en el script (`sk-[a]nt-`, `gh[p]_`, …): tal cual, la regla 1 del propio hook bloquearía el commit de este archivo.
+**Qué salió:** parte A, lanzado en una sesión anterior. Los prefijos de clave van escritos como en el script (`sk-[a]nt-`, `gh[p]_`, …): tal cual, la regla 1 del propio hook bloquearía el commit de este archivo.
 
 ---
 
 ## Prompt 2
+
+**Modelo:** (por confirmar)
+**Herramienta:** Claude Code
+
+```
+Ahora necesito probar el hook de seguridad.
+Crea un archivo temporal dentro del repositorio que contenga una dirección de correo ficticia con dominio gmail.com.
+Después:
+
+Ejecuta git add sobre el archivo temporal.
+Intenta realizar un commit mediante una llamada Bash de Claude Code que contenga git commit.
+Comprueba que el hook devuelve código 2.
+Comprueba que el commit ha sido bloqueado.
+Comprueba que se ha añadido una línea al registro docs/seguridad/registro-de-bloqueos.md.
+Verifica que el registro no contiene el correo detectado.
+Elimina el archivo temporal tanto del área de preparación como del directorio de trabajo.
+No elimines la evidencia del registro.
+No desactives ni evites el hook.
+Al terminar, muestra el resultado de la prueba y el estado de Git.
+```
+
+**Qué salió:** parte B, lanzado en una sesión anterior. El registro no conserva ninguna línea de esta prueba.
+
+---
+
+## Prompt 3
 
 **Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
 **Herramienta:** Claude Code
@@ -110,7 +136,7 @@ Cuando entres, escribe /hooks para confirmar que aparece PreToolUse → Bash →
 
 ---
 
-## Prompt 3
+## Prompt 4
 
 **Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
 **Herramienta:** Claude Code
@@ -123,7 +149,7 @@ En docs/capabilities/tasks/README.md, en la sección de pruebas manuales contra 
 
 ---
 
-## Prompt 4
+## Prompt 5
 
 **Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
 **Herramienta:** Claude Code
@@ -136,7 +162,7 @@ Repite el commit con lo que ya tienes preparado: solo el README de tasks y el re
 
 ---
 
-## Prompt 5
+## Prompt 6
 
 **Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
 **Herramienta:** Claude Code
@@ -149,7 +175,7 @@ git status
 
 ---
 
-## Prompt 6
+## Prompt 7
 
 **Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
 **Herramienta:** Claude Code
@@ -162,7 +188,7 @@ Haz commit solo de .claude/hooks/datos-que-no-salen.sh, .claude/settings.json y 
 
 ---
 
-## Prompt 7
+## Prompt 8
 
 **Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
 **Herramienta:** Claude Code
@@ -175,7 +201,7 @@ todavia no antes tengo que escribir los hallazgos .md y prompts.md no hagas push
 
 ---
 
-## Prompt 8
+## Prompt 9
 
 **Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
 **Herramienta:** Claude Code
@@ -190,7 +216,7 @@ Dudas: el Author identity unknown del primer commit, la ausencia de la línea de
 
 ---
 
-## Prompt 9
+## Prompt 10
 
 **Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
 **Herramienta:** Claude Code
