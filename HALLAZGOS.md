@@ -24,3 +24,15 @@ Un dato personal o un secreto de este proyecto que el hook NO puede cazar, y por
 De qué dudaste, o qué no pudiste comprobar.
 
 - El primer commit falló con `Author identity unknown` después de pasar el hook, y el registro solo tiene la línea del bloqueo de la parte C: no aparece ninguna de la prueba de la parte B.
+
+## Revisión adversarial del PR
+
+Lo que encontró el `adversarial-reviewer` al revisar el PR #1, sin corregir todavía:
+
+- El hook no ve `git commit` si va con opciones globales (`git -C . commit`, `git -c user.name=x commit`), con un alias o desde una variable.
+- `git commit -am` o `git commit <ruta>` sin `git add` en el mismo comando solo revisa lo preparado, así que un cambio en un archivo ya trackeado pasa.
+- Si el comando cambia de directorio, o el `cwd` no es un repo, el hook sale con 0 en vez de bloquear.
+- Los mensajes de commit y la identidad del autor no se revisan: el nombre de la persona de pruebas quedó en el mensaje de `49273d1` y en el README de tasks, y el correo personal del autor va en todos los commits.
+- Faltan prefijos de clave (`ghs_`, `gho_`, claves AWS temporales, `sk-` de otros proveedores); `APP_KEY` solo se detecta al principio de la línea; `.env.local` y los binarios pasan.
+- Con `git add` en el mismo comando se revisa todo lo no preparado, aunque no entre en el commit, y eso puede dar falsos positivos.
+- Sí cumple: ni stderr ni el registro repiten el valor detectado, y la hora va en UTC.
