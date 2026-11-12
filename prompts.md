@@ -20,6 +20,85 @@ distinto, y sin este archivo no se distinguen.
 
 ## Prompt 1
 
+**Modelo:** (por confirmar)
+**Herramienta:** Claude Code
+
+```
+Vamos a implementar la Parte B del ejercicio de seguridad.
+Antes de modificar nada, revisa la estructura actual del repositorio, especialmente:
+
+.claude/settings.json
+Los hooks existentes.
+El hook de Prettier.
+CLAUDE.md.
+AGENTS.md.
+Comprueba qué es AGENTS.md y no lo modifiques.
+Después implementa estas dos piezas:
+PIEZA 1: Crea .claude/hooks/datos-que-no-salen.sh.
+Requisitos:
+
+Debe ser un hook PreToolUse.
+Se ejecuta únicamente con matcher Bash.
+Debe leer el JSON de entrada estándar usando jq.
+El comando está en .tool_input.command.
+Debe utilizar set -uo pipefail.
+Solo debe actuar cuando el comando contenga git commit.
+Para cualquier otro comando debe salir con código 0 y no escribir nada.
+Debe revisar:
+
+Las líneas añadidas de git diff --cached.
+Si el mismo comando contiene git add, también los cambios sin preparar y los archivos nuevos sin seguimiento.
+Aplica exclusivamente estas reglas:
+
+Secretos:
+AKIA seguido de 16 caracteres.
+sk-[a]nt-
+gh[p]_
+github_[p]at_
+AIza seguido de 35 caracteres.
+xox[b]-, xox[p]- y xox[a]-.
+Bloques BEGIN ... PRIVATE KEY.
+Líneas APP_KEY= con valor.
+Correos electrónicos: Bloquear dominios distintos de example.com, example.org, example.net y github.com.
+Archivos: Bloquear archivos llamados exactamente .env, independientemente de su carpeta. No bloquear .env.example.
+Cuando detectes una coincidencia:
+
+Salir con código 2.
+Escribir por stderr la regla activada y el archivo.
+Indicar que el dato debe sustituirse por uno inventado.
+Nunca mostrar el valor detectado.
+Añadir una línea al archivo docs/seguridad/registro-de-bloqueos.md.
+Incluir fecha y hora UTC en formato ISO 8601, BLOQUEADO, la regla y el archivo.
+Si el registro no existe, crearlo con una cabecera de una línea.
+Cuando no haya coincidencias:
+
+Salir con código 0.
+No escribir nada.
+PIEZA 2: Añade un bloque breve en la sección de reglas de proceso de CLAUDE.md que explique:
+
+Que existe el hook.
+Las tres categorías que bloquea.
+Que no se debe desactivar ni saltar el control.
+Que se debe sustituir el dato por uno inventado y volver a intentarlo.
+Que el registro de bloqueos debe incluirse en el commit como evidencia.
+Registra el hook en .claude/settings.json como PreToolUse con matcher Bash, junto al hook existente.
+No modifiques AGENTS.md.
+Al terminar:
+
+Revisa el script.
+Comprueba los permisos de ejecución.
+Valida la sintaxis.
+Comprueba que la configuración JSON sea válida.
+No realices commits todavía.
+Explícame qué archivos modificaste y por qué.
+```
+
+**Qué salió:** lanzado en una sesión anterior, antes del prompt de prueba. Los prefijos de clave van escritos como en el script (`sk-[a]nt-`, `gh[p]_`, …): tal cual, la regla 1 del propio hook bloquearía el commit de este archivo.
+
+---
+
+## Prompt 2
+
 **Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
 **Herramienta:** Claude Code
 
@@ -31,7 +110,7 @@ Cuando entres, escribe /hooks para confirmar que aparece PreToolUse → Bash →
 
 ---
 
-## Prompt 2
+## Prompt 3
 
 **Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
 **Herramienta:** Claude Code
@@ -44,7 +123,7 @@ En docs/capabilities/tasks/README.md, en la sección de pruebas manuales contra 
 
 ---
 
-## Prompt 3
+## Prompt 4
 
 **Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
 **Herramienta:** Claude Code
@@ -57,7 +136,7 @@ Repite el commit con lo que ya tienes preparado: solo el README de tasks y el re
 
 ---
 
-## Prompt 4
+## Prompt 5
 
 **Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
 **Herramienta:** Claude Code
@@ -70,7 +149,7 @@ git status
 
 ---
 
-## Prompt 5
+## Prompt 6
 
 **Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
 **Herramienta:** Claude Code
@@ -83,7 +162,7 @@ Haz commit solo de .claude/hooks/datos-que-no-salen.sh, .claude/settings.json y 
 
 ---
 
-## Prompt 6
+## Prompt 7
 
 **Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
 **Herramienta:** Claude Code
@@ -96,7 +175,7 @@ todavia no antes tengo que escribir los hallazgos .md y prompts.md no hagas push
 
 ---
 
-## Prompt 7
+## Prompt 8
 
 **Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
 **Herramienta:** Claude Code
@@ -111,7 +190,7 @@ Dudas: el Author identity unknown del primer commit, la ausencia de la línea de
 
 ---
 
-## Prompt 8
+## Prompt 9
 
 **Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
 **Herramienta:** Claude Code
